@@ -17,7 +17,7 @@ Una aplicación simple de lista de tareas (To-Do) desarrollada en Flutter.
 1. Clona el repositorio:
 
    ```bash
-   git clone https://github.com/tuusuario/todo-app.git
+   git clone https://github.com/T0NY24/Examen_parcial_2.git
 
 ## Pantallas
 
