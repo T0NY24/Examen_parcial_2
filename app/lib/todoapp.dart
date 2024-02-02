@@ -1,13 +1,25 @@
 import 'package:flutter/material.dart';
 import 'todoappmodel.dart';
 
+class Todo {
+  String title;
+  String description;
+  bool isCompleted;
+
+  Todo({
+    required this.title,
+    required this.description,
+    this.isCompleted = false,
+  });
+}
+
 class TodoListScreen extends StatefulWidget {
   @override
   _TodoListScreenState createState() => _TodoListScreenState();
 }
 
 class _TodoListScreenState extends State<TodoListScreen> {
-  final List<Todo> todos = [];
+  final List<Todo> _todos = [];
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +27,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
       appBar: AppBar(
         title: Text('To-Do List'),
       ),
-      body: todos.isEmpty
+      body: _todos.isEmpty
           ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -37,47 +49,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
                 ],
               ),
             )
-          : ListView.builder(
-              itemCount: todos.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  title: Row(
-                    children: [
-                      Checkbox(
-                        value: todos[index].isCompleted,
-                        onChanged: (value) {
-                          setState(() {
-                            todos[index].isCompleted = value!;
-                          });
-                        },
-                      ),
-                      Expanded(
-                        child: Text(
-                          todos[index].title,
-                          style: TextStyle(
-                            decoration: todos[index].isCompleted
-                                ? TextDecoration.lineThrough
-                                : TextDecoration.none,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  subtitle: Text(todos[index].description),
-                  onTap: () {
-                    _editTodo(index);
-                  },
-                  trailing: IconButton(
-                    icon: Icon(Icons.delete),
-                    onPressed: () {
-                      setState(() {
-                        todos.removeAt(index);
-                      });
-                    },
-                  ),
-                );
-              },
-            ),
+          : _buildTodoList(),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           _addTodo();
@@ -87,27 +59,85 @@ class _TodoListScreenState extends State<TodoListScreen> {
     );
   }
 
+  Widget _buildTodoList() {
+    return ListView.builder(
+      itemCount: _todos.length,
+      itemBuilder: (context, index) {
+        final todo = _todos[index];
+
+        return Card(
+          elevation: 3.0,
+          margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+          child: ListTile(
+            title: Text(
+              todo.title,
+              style: todo.isCompleted
+                  ? TextStyle(decoration: TextDecoration.lineThrough)
+                  : null,
+            ),
+            subtitle: Text(todo.description),
+            leading: Checkbox(
+              value: todo.isCompleted,
+              onChanged: (checked) => _toggleTodo(index),
+            ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: Icon(Icons.edit),
+                  onPressed: () => _editTodo(index),
+                ),
+                IconButton(
+                  icon: Icon(Icons.delete),
+                  onPressed: () => _removeTodoDialog(index),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   void _addTodo() {
+    _displayDialog(
+      title: 'Agregar Tarea',
+      confirmTxt: 'Agregar',
+      onConfirm: (title, desc) {
+        setState(() {
+          _todos.add(Todo(
+            title: title,
+            description: desc,
+          ));
+        });
+      },
+    );
+  }
+
+  void _editTodo(int index) {
+    final todo = _todos[index];
+
+    _displayDialog(
+      title: 'Editar Tarea',
+      initialTitle: todo.title,
+      initialDesc: todo.description,
+      confirmTxt: 'Guardar',
+      onConfirm: (title, desc) {
+        setState(() {
+          todo.title = title;
+          todo.description = desc;
+        });
+      },
+    );
+  }
+
+  void _removeTodoDialog(int index) {
     showDialog(
       context: context,
       builder: (context) {
-        TextEditingController _titleController = TextEditingController();
-        TextEditingController _descriptionController = TextEditingController();
-
         return AlertDialog(
-          title: Text('Agregar Tarea'),
-          content: Column(
-            children: [
-              TextField(
-                controller: _titleController,
-                decoration: InputDecoration(labelText: 'Título'),
-              ),
-              TextField(
-                controller: _descriptionController,
-                decoration: InputDecoration(labelText: 'Descripción'),
-              ),
-            ],
-          ),
+          title: Text('Eliminar Tarea'),
+          content: Text('¿Estás seguro de que deseas eliminar esta tarea?'),
           actions: [
             TextButton(
               onPressed: () {
@@ -117,15 +147,10 @@ class _TodoListScreenState extends State<TodoListScreen> {
             ),
             TextButton(
               onPressed: () {
-                setState(() {
-                  todos.add(Todo(
-                    title: _titleController.text,
-                    description: _descriptionController.text,
-                  ));
-                });
+                _removeTodo(index);
                 Navigator.pop(context);
               },
-              child: Text('Agregar'),
+              child: Text('Eliminar'),
             ),
           ],
         );
@@ -133,25 +158,40 @@ class _TodoListScreenState extends State<TodoListScreen> {
     );
   }
 
-  void _editTodo(int index) {
+  void _removeTodo(int index) {
+    setState(() => _todos.removeAt(index));
+  }
+
+  void _toggleTodo(int index) {
+    setState(() {
+      _todos[index].isCompleted = !_todos[index].isCompleted;
+    });
+  }
+
+  void _displayDialog({
+    required String title,
+    String? initialTitle,
+    String? initialDesc,
+    required String confirmTxt,
+    required Function(String title, String desc) onConfirm,
+  }) {
+    final controllerTitle = TextEditingController(text: initialTitle);
+    final controllerDesc = TextEditingController(text: initialDesc);
+
     showDialog(
       context: context,
       builder: (context) {
-        TextEditingController _titleController =
-            TextEditingController(text: todos[index].title);
-        TextEditingController _descriptionController =
-            TextEditingController(text: todos[index].description);
-
         return AlertDialog(
-          title: Text('Editar Tarea'),
+          title: Text(title),
           content: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
-                controller: _titleController,
+                controller: controllerTitle,
                 decoration: InputDecoration(labelText: 'Título'),
               ),
               TextField(
-                controller: _descriptionController,
+                controller: controllerDesc,
                 decoration: InputDecoration(labelText: 'Descripción'),
               ),
             ],
@@ -165,13 +205,12 @@ class _TodoListScreenState extends State<TodoListScreen> {
             ),
             TextButton(
               onPressed: () {
-                setState(() {
-                  todos[index].title = _titleController.text;
-                  todos[index].description = _descriptionController.text;
-                });
+                final enteredTitle = controllerTitle.text;
+                final enteredDesc = controllerDesc.text;
                 Navigator.pop(context);
+                onConfirm(enteredTitle, enteredDesc);
               },
-              child: Text('Guardar'),
+              child: Text(confirmTxt),
             ),
           ],
         );
