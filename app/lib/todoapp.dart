@@ -7,7 +7,7 @@ class TodoListScreen extends StatefulWidget {
 }
 
 class _TodoListScreenState extends State<TodoListScreen> {
-  List<Todo> todos = [];
+  final List<Todo> todos = [];
 
   @override
   Widget build(BuildContext context) {
@@ -15,47 +15,69 @@ class _TodoListScreenState extends State<TodoListScreen> {
       appBar: AppBar(
         title: Text('To-Do List'),
       ),
-      body: ListView.builder(
-        itemCount: todos.length,
-        itemBuilder: (context, index) {
-          return ListTile(
-            title: Row(
-              children: [
-                Checkbox(
-                  value: todos[index].isCompleted,
-                  onChanged: (value) {
-                    setState(() {
-                      todos[index].isCompleted = value!;
-                    });
-                  },
-                ),
-                Expanded(
-                  child: Text(
-                    todos[index].title,
+      body: todos.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Bienvenido a To-Do-App',
                     style: TextStyle(
-                      decoration: todos[index].isCompleted
-                          ? TextDecoration.lineThrough
-                          : TextDecoration.none,
+                      fontSize: 24.0,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                ),
-              ],
-            ),
-            subtitle: Text(todos[index].description),
-            onTap: () {
-              _editTodo(index);
-            },
-            trailing: IconButton(
-              icon: Icon(Icons.delete),
-              onPressed: () {
-                setState(() {
-                  todos.removeAt(index);
-                });
+                  SizedBox(height: 16.0),
+                  Image.asset(
+                    'assets/logo.jpg', // Reemplaza con la ruta de tu imagen
+                    width: 200.0,
+                    height: 200.0,
+                    fit: BoxFit.contain,
+                  ),
+                ],
+              ),
+            )
+          : ListView.builder(
+              itemCount: todos.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Row(
+                    children: [
+                      Checkbox(
+                        value: todos[index].isCompleted,
+                        onChanged: (value) {
+                          setState(() {
+                            todos[index].isCompleted = value!;
+                          });
+                        },
+                      ),
+                      Expanded(
+                        child: Text(
+                          todos[index].title,
+                          style: TextStyle(
+                            decoration: todos[index].isCompleted
+                                ? TextDecoration.lineThrough
+                                : TextDecoration.none,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  subtitle: Text(todos[index].description),
+                  onTap: () {
+                    _editTodo(index);
+                  },
+                  trailing: IconButton(
+                    icon: Icon(Icons.delete),
+                    onPressed: () {
+                      setState(() {
+                        todos.removeAt(index);
+                      });
+                    },
+                  ),
+                );
               },
             ),
-          );
-        },
-      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           _addTodo();
@@ -73,16 +95,16 @@ class _TodoListScreenState extends State<TodoListScreen> {
         TextEditingController _descriptionController = TextEditingController();
 
         return AlertDialog(
-          title: Text('Add Todo'),
+          title: Text('Agregar Tarea'),
           content: Column(
             children: [
               TextField(
                 controller: _titleController,
-                decoration: InputDecoration(labelText: 'Title'),
+                decoration: InputDecoration(labelText: 'Título'),
               ),
               TextField(
                 controller: _descriptionController,
-                decoration: InputDecoration(labelText: 'Description'),
+                decoration: InputDecoration(labelText: 'Descripción'),
               ),
             ],
           ),
@@ -91,7 +113,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: Text('Cancel'),
+              child: Text('Cancelar'),
             ),
             TextButton(
               onPressed: () {
@@ -103,7 +125,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
                 });
                 Navigator.pop(context);
               },
-              child: Text('Add'),
+              child: Text('Agregar'),
             ),
           ],
         );
@@ -121,16 +143,16 @@ class _TodoListScreenState extends State<TodoListScreen> {
             TextEditingController(text: todos[index].description);
 
         return AlertDialog(
-          title: Text('Edit Todo'),
+          title: Text('Editar Tarea'),
           content: Column(
             children: [
               TextField(
                 controller: _titleController,
-                decoration: InputDecoration(labelText: 'Title'),
+                decoration: InputDecoration(labelText: 'Título'),
               ),
               TextField(
                 controller: _descriptionController,
-                decoration: InputDecoration(labelText: 'Description'),
+                decoration: InputDecoration(labelText: 'Descripción'),
               ),
             ],
           ),
@@ -139,7 +161,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: Text('Cancel'),
+              child: Text('Cancelar'),
             ),
             TextButton(
               onPressed: () {
@@ -149,11 +171,11 @@ class _TodoListScreenState extends State<TodoListScreen> {
                 });
                 Navigator.pop(context);
               },
-              child: Text('Save'),
+              child: Text('Guardar'),
             ),
           ],
         );
-      }, // Agrega este paréntesis
+      },
     );
   }
 }
